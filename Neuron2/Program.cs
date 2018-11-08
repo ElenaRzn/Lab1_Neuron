@@ -107,7 +107,7 @@ namespace Neuron2
                 MaxAngle = 40,
                 DeltaAngle = 3,
                 NoiseLevel = 0,
-                ShowWhenCreated = true,
+                ShowWhenCreated = false,
             },
             NeuronsCount = 60
         };

@@ -15,6 +15,8 @@ namespace Neuron2.SymbolRecognition
 {
     public class MyLearning
     {
+        static Int32 epoch = 0;
+        static DataGridView successGrid;
         static LearningArguments arguments;
         static BaseMaker baseMaker;
         static double[,] percentage;
@@ -58,7 +60,9 @@ namespace Neuron2.SymbolRecognition
                         n.Weights[i] = rnd.NextDouble() * 2 - 1;
 
             teacher = new BackPropagationLearning(network);
-            while (true)
+            //обучение
+            totalErrors = 1.0;
+            while (epoch < 30)
             {
                 //секция обучения
                 var watch = new Stopwatch();
@@ -100,13 +104,17 @@ namespace Neuron2.SymbolRecognition
                 //перерисовка
                 form.BeginInvoke(new Action(Update));
                 //success.Series["Error"].Points.AddXY(x, totalErrors);
+                Interlocked.Increment(ref epoch);
 
             }
         }
         static void Update()
         {
             textBox.Text = totalErrors.ToString();
-            success.Series["Error"].Points.AddXY(x, totalErrors);
+            //successGrid.Rows[epoch - 1].Cells[0].Value = epoch.ToString();
+            successGrid.Rows.Add();
+            successGrid.Rows[epoch - 1].Cells[0].Value = totalErrors.ToString();
+            //success.Series["Error"].Points.AddXY(x, totalErrors);
             x++;
         }
 
@@ -124,25 +132,37 @@ namespace Neuron2.SymbolRecognition
                 AllowDrop = false
             };
 
-            success = new Chart
+            //success = new Chart
+            //{
+            //    Dock = DockStyle.Fill,
+            //    Size = new Size(400, 400),
+            //    AllowDrop = false
+            //};
+            //ChartArea chartArrea1 = new ChartArea
+            //{
+            //    Name = "ChartArre1",
+            //    AxisY = new Axis
+            //    {
+            //        Maximum = 1,
+            //    }
+            //};
+            //success.ChartAreas.Add("ChartArrea1");
+            //success.ChartAreas["ChartArrea1"].AxisY.MajorGrid.Enabled = false;
+            //success.ChartAreas["ChartArrea1"].AxisX.MajorGrid.Enabled = false;
+            //success.Series.Add("Error");
+            //success.Series["Error"].ChartType = SeriesChartType.Spline;
+            successGrid = new DataGridView()
             {
                 Dock = DockStyle.Fill,
-                Size = new Size(400, 400),
+                ColumnCount = 1,
+                RowCount = 1,
+                AutoSize = true,
+                ColumnHeadersVisible = false,
+                RowHeadersVisible = false,
+                AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+                AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells,
                 AllowDrop = false
             };
-            ChartArea chartArrea1 = new ChartArea
-            {
-                Name = "ChartArre1",
-                AxisY = new Axis
-                {
-                    Maximum = 1,
-                }
-            };
-            success.ChartAreas.Add("ChartArrea1");
-            success.ChartAreas["ChartArrea1"].AxisY.MajorGrid.Enabled = false;
-            success.ChartAreas["ChartArrea1"].AxisX.MajorGrid.Enabled = false;
-            success.Series.Add("Error");
-            success.Series["Error"].ChartType = SeriesChartType.Spline;
             var buttonTeach = new Button
             {
                 Text = "Teach",
@@ -201,11 +221,12 @@ namespace Neuron2.SymbolRecognition
                     {
                         task = baseMaker.GenerateRandom(i);
                     }
-                    for (int p = 0; p<30; p++)
-                    {
-                        var noise = rnd.Next(task.Length-1);
-                        task[noise] = 1;
-                    }
+                    //добавление шума
+                    //for (int p = 0; p < 30; p++)
+                    //{
+                    //    var noise = rnd.Next(task.Length - 1);
+                    //    task[noise] = 1;
+                    //}
 
                     textSymbol.Text += symbols[i].ToString() + " ";
                     //анализ с помощью нейронной сети
@@ -265,7 +286,7 @@ namespace Neuron2.SymbolRecognition
             table.Controls.Add(buttonTest, 0, 1);
             table.Controls.Add(labelTestError, 0, 2);
             table.Controls.Add(textBoxTestError, 1, 2);
-            table.Controls.Add(buttonUse, 0, 3);
+            //table.Controls.Add(buttonUse, 0, 3);
             table.Controls.Add(textSymbol, 1, 0);
             table.Controls.Add(textAnswer, 1, 1);
 
@@ -276,13 +297,15 @@ namespace Neuron2.SymbolRecognition
                 AllowDrop = false
             };
             tableUse.RowStyles.Clear();
-            tableUse.RowStyles.Add(new RowStyle(SizeType.Percent, 90));
+            tableUse.RowStyles.Add(new RowStyle(SizeType.Percent, 80));
+            tableUse.RowStyles.Add(new RowStyle(SizeType.Percent, 10));
             tableUse.RowStyles.Add(new RowStyle(SizeType.Percent, 10));
             tableUse.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             var buttonInput = new Button()
             {
                 Text = "Input",
-                AllowDrop = false
+                AllowDrop = false,
+                Dock = DockStyle.Fill
             };
 
             var grid = new DataGridView()
@@ -315,13 +338,14 @@ namespace Neuron2.SymbolRecognition
 
             };
             tableUse.Controls.Add(grid, 0, 0);
-            tableUse.Controls.Add(buttonInput, 0, 1);
-
+            tableUse.Controls.Add(buttonInput, 0, 2);
+            tableUse.Controls.Add(buttonUse, 0, 1);
 
             table.Controls.Add(tableUse, 1, 3);
             //заполнение главной панели
             tableMain.Controls.Add(table, 0, 0);
-            tableMain.Controls.Add(success, 1, 0);
+            //tableMain.Controls.Add(success, 1, 0);
+            tableMain.Controls.Add(successGrid, 1, 0); 
             tableMain.Controls.Add(textBox, 1, 1);
             //создание окошка
             form = new Form()
